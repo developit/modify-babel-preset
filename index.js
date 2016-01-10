@@ -1,0 +1,87 @@
+var path = require('path'),
+	relative = require('require-relative');
+
+function babelRequire(type, name, relativeTo) {
+	var mod;
+	if (!name.match(/^babel-(preset|plugin)-/)) {
+		try {
+			mod = req('babel-'+type+'-'+name, relativeTo);
+		} catch(err) {}
+	}
+	return mod || req(name, relativeTo);
+}
+
+function req(name, relativeTo) {
+	return relativeTo ? relative(name, relativeTo) : require(name);
+}
+
+module.exports = function(preset, modifications) {
+	modifications = modifications || {};
+
+	if (typeof preset==='string') {
+		if (!preset.match(/^babel-preset-/)) {
+			try {
+				preset = require.resolve('babel-preset-'+preset);
+			} catch(err) { }
+		}
+		if (!preset) {
+			preset = require.resolve(preset);
+		}
+	}
+
+	var originalConfig = require(preset),
+		pathRoot = path.dirname(preset),
+		config = {};
+	for (var key in originalConfig) {
+		if (originalConfig.hasOwnProperty(key)) {
+			config[key] = originalConfig[key];
+		}
+	}
+	var plugins = config.plugins = (config.plugins || []).slice();
+
+	function getPlugin(name) {
+		var mod;
+		try {
+			mod = babelRequire('plugin', name, pathRoot);
+		} catch(err) {}
+		if (!mod) {
+			try {
+				mod = babelRequire(name);
+			} catch(err2) {}
+		}
+		return mod;
+	}
+
+	function indexOf(list, name) {
+		var mod = getPlugin(name);
+		return mod ? list.indexOf(mod) : -1;
+	}
+
+	Object.keys(modifications).forEach(function(key) {
+		var value = modifications[key],
+			index = indexOf(plugins, key);
+		if (value===false) {
+			plugins.splice(index, 1);
+		}
+		else {
+			var p = getPlugin(key);
+			if (value!==true) {
+				p = [p].concat(value);
+			}
+			// if (Array.isArray(value) && typeof value[0]==='string') {
+			// 	value = [getPlugin(value[0])].concat(value.slice(1));
+			// }
+			// else if (typeof value==='string') {
+			// 	value = getPlugin(value)
+			// }
+			if (index<0) {
+				plugins.push(p);
+			}
+			else {
+				plugins[index] = p;
+			}
+		}
+	});
+
+	return config;
+};
