@@ -1,5 +1,9 @@
 
-# `modify-babel-preset`
+# modify-babel-preset
+
+[![npm](https://img.shields.io/npm/v/modify-babel-preset.svg)](http://npm.im/modify-babel-preset)
+[![travis](https://travis-ci.org/developit/modify-babel-preset.svg?branch=master)](https://travis-ci.org/developit/modify-babel-preset)
+
 
 Create a modified babel preset based on an an existing preset.
 
