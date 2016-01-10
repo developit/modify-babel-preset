@@ -68,12 +68,6 @@ module.exports = function(preset, modifications) {
 			if (value!==true) {
 				p = [p].concat(value);
 			}
-			// if (Array.isArray(value) && typeof value[0]==='string') {
-			// 	value = [getPlugin(value[0])].concat(value.slice(1));
-			// }
-			// else if (typeof value==='string') {
-			// 	value = getPlugin(value)
-			// }
 			if (index<0) {
 				plugins.push(p);
 			}
