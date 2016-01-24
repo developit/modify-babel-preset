@@ -54,7 +54,14 @@ module.exports = function(preset, modifications) {
 
 	function indexOf(list, name) {
 		var mod = getPlugin(name);
-		return mod ? list.indexOf(mod) : -1;
+		if (mod) {
+			for (var i=0; i<list.length; i++) {
+				if (list[i]===mod || list[i][0]===mod) {
+					return i;
+				}
+			}
+		}
+		return -1;
 	}
 
 	Object.keys(modifications).forEach(function(key) {
