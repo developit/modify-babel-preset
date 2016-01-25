@@ -66,7 +66,7 @@ module.exports = function(preset, modifications) {
 		}
 		for (var i=0; i<list.length; i++) {
 			var p = Array.isArray(list[i]) ? list[i][0] : list[i];
-			if ((mod && p===mod) || isSameName(p, name)) {
+			if ((mod && p===mod) || isSameName(p, name) || (p._original_name && isSameName(p._original_name, name)) {
 				return i;
 			}
 		}
