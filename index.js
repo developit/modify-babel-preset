@@ -84,7 +84,7 @@ module.exports = function(preset, modifications) {
 		}
 		else {
 			var p = getPlugin(key);
-			plugin._original_name = key;
+			p._original_name = key;
 			if (value!==true) {
 				p = [p].concat(value);
 			}
