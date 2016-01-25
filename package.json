@@ -1,6 +1,6 @@
 {
   "name": "modify-babel-preset",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Create a modified babel preset based on an an existing preset.",
   "main": "index.js",
   "scripts": {
