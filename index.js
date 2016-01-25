@@ -17,9 +17,10 @@ function req(name, relativeTo) {
 
 module.exports = function(preset, modifications) {
 	modifications = modifications || {};
+	var nameDrops = modifications.nameDrops!==false;
 
 	if (typeof preset==='string') {
-		if (!preset.match(/^babel-preset-/)) {
+		if (!preset.match(/(^babel-preset-|\/)/)) {
 			try {
 				preset = relative.resolve('babel-preset-'+preset);
 			} catch(err) {
@@ -74,6 +75,8 @@ module.exports = function(preset, modifications) {
 	}
 
 	Object.keys(modifications).forEach(function(key) {
+		if (key==='nameDrops') return;
+
 		var value = modifications[key],
 			index = indexOf(plugins, key);
 		if (value===false) {
@@ -84,7 +87,9 @@ module.exports = function(preset, modifications) {
 		}
 		else {
 			var p = getPlugin(key);
-			p._original_name = key;
+			if (nameDrops) {
+				p._original_name = key;
+			}
 			if (value!==true) {
 				p = [p].concat(value);
 			}

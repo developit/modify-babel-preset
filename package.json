@@ -4,7 +4,7 @@
   "description": "Create a modified babel preset based on an an existing preset.",
   "main": "index.js",
   "scripts": {
-    "prepublish": "npm test",
+    "prepublish": "NODE_ENV=development npm test",
     "test": "mocha test/**"
   },
   "keywords": [
