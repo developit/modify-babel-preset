@@ -1,7 +1,7 @@
 var path = require('path'),
 	relative = require('require-relative');
 
-function babelRequire(type, name, relativeTo) {
+function babelRequire(type, name, relativeTo, log) {
 	var mod;
 	if (!name.match(/^babel-(preset|plugin)-/)) {
 		try {
@@ -21,8 +21,10 @@ module.exports = function(preset, modifications) {
 	if (typeof preset==='string') {
 		if (!preset.match(/^babel-preset-/)) {
 			try {
-				preset = require.resolve('babel-preset-'+preset);
-			} catch(err) { }
+				preset = relative.resolve('babel-preset-'+preset);
+			} catch(err) {
+				console.log(err);
+			}
 		}
 		if (!preset) {
 			preset = require.resolve(preset);
@@ -46,19 +48,26 @@ module.exports = function(preset, modifications) {
 		} catch(err) {}
 		if (!mod) {
 			try {
-				mod = babelRequire(name);
+				mod = babelRequire('plugin', name);
 			} catch(err2) {}
 		}
 		return mod;
 	}
 
+	function isSameName(a, b) {
+		if (typeof a!=='string' || typeof b!=='string') return false;
+		return a.replace(/^babel-plugin-/i, '').toLowerCase() === b.replace(/^babel-plugin-/i, '').toLowerCase();
+	}
+
 	function indexOf(list, name) {
 		var mod = getPlugin(name);
-		if (mod) {
-			for (var i=0; i<list.length; i++) {
-				if (list[i]===mod || list[i][0]===mod) {
-					return i;
-				}
+		if (!mod && process.env.NODE_ENV==='development') {
+			console.warn('no module found for: '+name);
+		}
+		for (var i=0; i<list.length; i++) {
+			var p = Array.isArray(list[i]) ? list[i][0] : list[i];
+			if ((mod && p===mod) || isSameName(p, name)) {
+				return i;
 			}
 		}
 		return -1;
@@ -68,10 +77,14 @@ module.exports = function(preset, modifications) {
 		var value = modifications[key],
 			index = indexOf(plugins, key);
 		if (value===false) {
+			if (index<0 && process.env.NODE_ENV==='development') {
+				console.warn(key+' not found', __dirname);
+			}
 			plugins.splice(index, 1);
 		}
 		else {
 			var p = getPlugin(key);
+			plugin._original_name = key;
 			if (value!==true) {
 				p = [p].concat(value);
 			}
