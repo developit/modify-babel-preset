@@ -15,20 +15,22 @@ function req(name, relativeTo) {
 	return relativeTo ? relative(name, relativeTo) : require(name);
 }
 
-module.exports = function(preset, modifications) {
+module.exports = function(presetInput, modifications) {
 	modifications = modifications || {};
 	var nameDrops = modifications.nameDrops!==false;
 
-	if (typeof preset==='string') {
-		if (!preset.match(/(^babel-preset-|\/)/)) {
+	var preset;
+
+	if (typeof presetInput==='string') {
+		if (!presetInput.match(/(^babel-preset-|\/)/)) {
 			try {
-				preset = relative.resolve('babel-preset-'+preset);
+				preset = relative.resolve('babel-preset-'+presetInput);
 			} catch(err) {
 				console.log(err);
 			}
 		}
 		if (!preset) {
-			preset = require.resolve(preset);
+			preset = require.resolve(presetInput);
 		}
 	}
 
