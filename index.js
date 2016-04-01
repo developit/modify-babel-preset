@@ -1,26 +1,54 @@
-var path = require('path'),
-	relative = require('require-relative');
+var path = require('path');
+var relative = require('require-relative');
+var serialize = require('./lib/serialize');
+var getFlattenedPlugins = require('./lib/flatten');
 
-function babelRequire(type, name, relativeTo, log) {
-	var mod;
-	if (!name.match(/^babel-(preset|plugin)-/)) {
+// strip a nested module path + filename down to just the innermost module's (file)name
+function getModuleName(path) {
+	return path.replace(/^(.+\/)?node_modules\/([^\/]+)(\/.*)?$/g, '$2');
+}
+
+
+function setHiddenProp(obj, prop, value) {
+	if (Object.defineProperty) {
+		Object.defineProperty(obj, prop, {
+			enumerable: false,
+			value: value
+		});
+	}
+	else {
+		obj[prop] = value;
+	}
+}
+
+
+function extend(base, props) {
+	for (var i in props) if (props.hasOwnProperty(i)) {
+		base[i] = props[i];
+	}
+	return base;
+}
+
+
+function requireBabelPlugin(name, relativeTo) {
+	if (!name.match(/^babel-plugin-/)) {
 		try {
-			mod = req('babel-'+type+'-'+name, relativeTo);
+			if (relativeTo) {
+				name = relative.resolve('babel-plugin-'+name, relativeTo) || name;
+			}
+			else {
+				name = require.resolve('babel-plugin-'+name) || name;
+			}
 		} catch(err) {}
 	}
-	return mod || req(name, relativeTo);
+	return { mod:require(name), name:name };
 }
 
-function req(name, relativeTo) {
-	return relativeTo ? relative(name, relativeTo) : require(name);
-}
 
 module.exports = function(presetInput, modifications) {
 	modifications = modifications || {};
-	var nameDrops = modifications.nameDrops!==false;
 
 	var preset;
-
 	if (typeof presetInput==='string') {
 		if (!presetInput.match(/(^babel-preset-|\/)/)) {
 			try {
@@ -34,42 +62,39 @@ module.exports = function(presetInput, modifications) {
 		}
 	}
 
-	var originalConfig = require(preset),
-		pathRoot = path.dirname(preset),
-		config = {};
-	for (var key in originalConfig) {
-		if (originalConfig.hasOwnProperty(key)) {
-			config[key] = originalConfig[key];
-		}
-	}
-	var plugins = config.plugins = (config.plugins || []).slice();
+	preset = path.resolve(preset);
 
-	function getPlugin(name) {
-		var mod;
-		try {
-			mod = babelRequire('plugin', name, pathRoot);
-		} catch(err) {}
-		if (!mod) {
-			try {
-				mod = babelRequire('plugin', name);
-			} catch(err2) {}
-		}
-		return mod;
+	var presetModule = require(preset);
+
+	var orig = presetModule['modify-babel-preset'];
+	if (orig) {
+		console.log('Found nested modify-babel-preset configuration, flattening.');
+		return modify(orig.preset, extend(extend({}, orig.modifications), modifications));
 	}
+
+	var cwd = path.dirname(preset) || process.cwd();
+
+	// console.log('cwd: ', cwd);
+
+	var serialized = serialize(preset, {
+		cwd: cwd
+	});
+
+	var plugins = getFlattenedPlugins(serialized);
 
 	function isSameName(a, b) {
 		if (typeof a!=='string' || typeof b!=='string') return false;
 		return a.replace(/^babel-plugin-/i, '').toLowerCase() === b.replace(/^babel-plugin-/i, '').toLowerCase();
 	}
 
-	function indexOf(list, name) {
-		var mod = getPlugin(name);
-		if (!mod && process.env.NODE_ENV==='development') {
-			console.warn('no module found for: '+name);
-		}
-		for (var i=0; i<list.length; i++) {
-			var p = Array.isArray(list[i]) ? list[i][0] : list[i];
-			if ((mod && p===mod) || isSameName(p, name) || (p._original_name && isSameName(p._original_name, name))) {
+	function indexOf(plugins, key) {
+		for (var i=plugins.length; i--; ) {
+			var mod = Array.isArray(plugins[i]) ? plugins[i][0] : plugins[i];
+			var name = typeof mod==='string' && getModuleName(mod) || mod._original_name;
+			// if (typeof mod!=='string') {
+			// 	console.log(plugins[i], name);
+			// }
+			if (isSameName(name, key)) {
 				return i;
 			}
 		}
@@ -77,21 +102,22 @@ module.exports = function(presetInput, modifications) {
 	}
 
 	Object.keys(modifications).forEach(function(key) {
-		if (key==='nameDrops') return;
+		if (key==='nameDrops' || key==='string') return;
 
 		var value = modifications[key],
 			index = indexOf(plugins, key);
 		if (value===false) {
-			if (index<0 && process.env.NODE_ENV==='development') {
+			if (index!==-1) {
+				plugins.splice(index, 1);
+			}
+			else if (process.env.NODE_ENV==='development') {
 				console.warn(key+' not found', __dirname);
 			}
-			plugins.splice(index, 1);
 		}
 		else {
-			var p = getPlugin(key);
-			if (nameDrops) {
-				p._original_name = key;
-			}
+			var imported = requireBabelPlugin(key, cwd),
+				p = imported.mod;
+			setHiddenProp(p, '_original_name', imported.name);
 			if (value!==true) {
 				p = [p].concat(value);
 			}
@@ -104,5 +130,24 @@ module.exports = function(presetInput, modifications) {
 		}
 	});
 
-	return config;
+	if (modifications.string!==true) {
+		plugins = plugins.map(function(plugin) {
+			var mod = Array.isArray(plugin) ? plugin[0] : plugin;
+			if (typeof mod==='string') {
+				var p = path.resolve(cwd, mod);
+				mod = require(p);
+				setHiddenProp(mod, '_original_name', p);
+			}
+			return Array.isArray(plugin) ? [mod].concat(plugin.slice(1)) : mod;
+		});
+	}
+
+	var out = { plugins:plugins };
+
+	setHiddenProp(out, 'modify-babel-preset', {
+		preset: path.dirname(path.resolve(preset)),
+		modifications: modifications
+	});
+
+	return out;
 };
