@@ -1,8 +1,9 @@
 var expect = require('chai').expect,
+	requireRelative = require('require-relative'),
 	modifyBabelPreset = require('..'),
 	serializePreset = require('../lib/serialize'),
 	es2015Preset = require('babel-preset-es2015'),
-	transform = require('../node_modules/babel-preset-es2015/node_modules/babel-plugin-transform-es2015-typeof-symbol'),
+	transform = requireRelative('babel-preset-es2015', 'babel-plugin-transform-es2015-typeof-symbol'),
 	jsxCore = require('babel-plugin-transform-react-jsx'),
 	jsx = require('./fixtures/two/node_modules/one/node_modules/babel-plugin-transform-react-jsx');
 
