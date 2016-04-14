@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prepublish": "NODE_ENV=development npm test",
+    "pretest": "cd test/fixtures/two/node_modules/one && npm i",
     "test": "mocha test/**"
   },
   "keywords": [
