@@ -5,7 +5,7 @@ var getFlattenedPlugins = require('./lib/flatten');
 
 // strip a nested module path + filename down to just the innermost module's (file)name
 function getModuleName(path) {
-	return path.replace(/^(.+\/)?node_modules\/([^\/]+)(\/.*)?$/g, '$2');
+	return path.replace(/(?:(?:.+\/)?node_modules\/|\/|\.\.\/)((@[^\/]+\/)?[^\/]+)(\/.*)?$/g, '$1');
 }
 
 
@@ -32,15 +32,27 @@ function extend(base, props) {
 
 function requireBabelPlugin(name, relativeTo) {
 	if (!name.match(/^babel-plugin-/)) {
+		name = 'babel-plugin-' + name;
+	}
+
+	var relativeName;
+	if (relativeTo) {
 		try {
-			if (relativeTo) {
-				name = relative.resolve('babel-plugin-'+name, relativeTo) || name;
-			}
-			else {
-				name = require.resolve('babel-plugin-'+name) || name;
-			}
+			relativeName = relative.resolve(name, relativeTo);
+		} catch (err) {}
+	}
+	if (!relativeName) {
+		try {
+			relativeName = require.resolve(name);
 		} catch(err) {}
 	}
+
+	if (~name.indexOf('transform-es2015-typeof-symbol')) {
+		console.log(relativeName, name);
+	}
+
+	name = relativeName || name;
+
 	return { mod:require(name), name:name };
 }
 
@@ -96,6 +108,9 @@ module.exports = function(presetInput, modifications) {
 			// }
 			if (isSameName(name, key)) {
 				return i;
+			}
+			else if (~mod.indexOf(key)) {
+				console.log(mod);
 			}
 		}
 		return -1;
