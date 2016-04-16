@@ -47,10 +47,6 @@ function requireBabelPlugin(name, relativeTo) {
 		} catch(err) {}
 	}
 
-	if (~name.indexOf('transform-es2015-typeof-symbol')) {
-		console.log(relativeName, name);
-	}
-
 	name = relativeName || name;
 
 	return { mod:require(name), name:name };
@@ -108,9 +104,6 @@ module.exports = function(presetInput, modifications) {
 			// }
 			if (isSameName(name, key)) {
 				return i;
-			}
-			else if (~mod.indexOf(key)) {
-				console.log(mod);
 			}
 		}
 		return -1;
