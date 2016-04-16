@@ -13,6 +13,7 @@ function setHiddenProp(obj, prop, value) {
 	if (Object.defineProperty) {
 		Object.defineProperty(obj, prop, {
 			enumerable: false,
+			writable: true,
 			value: value
 		});
 	}
