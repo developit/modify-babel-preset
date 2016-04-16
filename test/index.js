@@ -79,12 +79,13 @@ describe('modify-babel-preset', function() {
 
 		expect(p).to.deep.equal( es2015Preset.plugins.concat([
 			[jsx, { pragma:'h' }]
-		]).map(stripNames).map(function(p) {
-			if (p===transform || p[0]===transform) {
-				return [transform, { loose:true }];
+		]).map(function(p) {
+			var fn = Array.isArray(p) ? p[0] : p;
+			if (fn===transform || (fn._original_name && ~fn._original_name.indexOf('babel-plugin-transform-es2015-typeof-symbol'))) {
+				return [fn, { loose:true }];
 			}
 			return p;
-		}) );
+		}).map(stripNames) );
 
 		console.log('one matched');
 
