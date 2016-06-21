@@ -15,6 +15,10 @@
     "preset"
   ],
   "author": "Jason Miller <jason@developit.ca>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/developit/modify-babel-preset.git"
+  },
   "license": "MIT",
   "dependencies": {
     "require-relative": "^0.8.7"
