@@ -5,7 +5,7 @@ var getFlattenedPlugins = require('./lib/flatten');
 
 // strip a nested module path + filename down to just the innermost module's (file)name
 function getModuleName(path) {
-	return path.replace(/(?:(?:.+\/)?node_modules\/|\/|\.\.\/)((@[^\/]+\/)?[^\/]+)(\/.*)?$/g, '$1');
+	return path.replace(/(?:(?:.+[\\/])?node_modules[\\/]|[\\/]|\.\.[\\/])((@[^\\/]+[\\/])?[^\\/]+)([\\/].*)?$/g, '$1');
 }
 
 
@@ -59,7 +59,7 @@ module.exports = function(presetInput, modifications) {
 
 	var preset;
 	if (typeof presetInput==='string') {
-		if (!presetInput.match(/(^babel-preset-|\/)/)) {
+		if (!presetInput.match(/(^babel-preset-|[\\/])/)) {
 			try {
 				preset = relative.resolve('babel-preset-'+presetInput);
 			} catch(err) {
