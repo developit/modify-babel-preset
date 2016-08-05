@@ -5,7 +5,7 @@ var getFlattenedPlugins = require('./lib/flatten');
 
 // strip a nested module path + filename down to just the innermost module's (file)name
 function getModuleName(path) {
-	return path.replace(/(?:(?:.+[\\/])?node_modules[\\/]|[\\/]|\.\.[\\/])((@[^\\/]+[\\/])?[^\\/]+)([\\/].*)?$/g, '$1');
+	return path.replace(/(?:..\/)*(?:(?:.+[\\/])?node_modules[\\/]|[\\/]|\.\.[\\/])((@[^\\/]+[\\/])?[^\\/]+)([\\/].*)?$/g, '$1');
 }
 
 
@@ -55,6 +55,12 @@ function requireBabelPlugin(name, relativeTo) {
 
 
 module.exports = function(presetInput, modifications) {
+	var options = {};
+
+	if (Array.isArray(presetInput)) {
+		options = presetInput[1];
+		presetInput = presetInput[0];
+	}
 	modifications = modifications || {};
 
 	var preset;
@@ -74,6 +80,9 @@ module.exports = function(presetInput, modifications) {
 	preset = path.resolve(preset);
 
 	var presetModule = require(preset);
+	if (typeof presetModule==='function') {
+		presetModule = presetModule({}, options);
+	}
 
 	var orig = presetModule['modify-babel-preset'];
 	if (orig) {
@@ -86,6 +95,7 @@ module.exports = function(presetInput, modifications) {
 	// console.log('cwd: ', cwd);
 
 	var serialized = serialize(preset, {
+		options: options,
 		cwd: cwd
 	});
 
@@ -100,9 +110,6 @@ module.exports = function(presetInput, modifications) {
 		for (var i=plugins.length; i--; ) {
 			var mod = Array.isArray(plugins[i]) ? plugins[i][0] : plugins[i];
 			var name = typeof mod==='string' && getModuleName(mod) || mod._original_name;
-			// if (typeof mod!=='string') {
-			// 	console.log(plugins[i], name);
-			// }
 			if (isSameName(name, key)) {
 				return i;
 			}
