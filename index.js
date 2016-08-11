@@ -5,7 +5,7 @@ var getFlattenedPlugins = require('./lib/flatten');
 
 // strip a nested module path + filename down to just the innermost module's (file)name
 function getModuleName(path) {
-	return path.replace(/(?:..\/)*(?:(?:.+[\\/])?node_modules[\\/]|[\\/]|\.\.[\\/])((@[^\\/]+[\\/])?[^\\/]+)([\\/].*)?$/g, '$1');
+	return path.replace(/(?:..[\\/])*(?:(?:.+[\\/])?node_modules[\\/]|[\\/]|\.\.[\\/])((@[^\\/]+[\\/])?[^\\/]+)([\\/].*)?$/g, '$1');
 }
 
 
