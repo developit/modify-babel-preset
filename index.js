@@ -2,6 +2,7 @@ var path = require('path');
 var relative = require('require-relative');
 var serialize = require('./lib/serialize');
 var getFlattenedPlugins = require('./lib/flatten');
+var normalizePreset = require('./lib/normalize-preset');
 
 // strip a nested module path + filename down to just the innermost module's (file)name
 function getModuleName(path) {
@@ -79,10 +80,7 @@ module.exports = function(presetInput, modifications) {
 
 	preset = path.resolve(preset);
 
-	var presetModule = require(preset);
-	if (typeof presetModule==='function') {
-		presetModule = presetModule({}, options);
-	}
+	var presetModule = normalizePreset(require(preset), null, options);
 
 	var orig = presetModule['modify-babel-preset'];
 	if (orig) {
