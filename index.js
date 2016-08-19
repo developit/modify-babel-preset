@@ -68,7 +68,7 @@ module.exports = function(presetInput, modifications) {
 	if (typeof presetInput==='string') {
 		if (!presetInput.match(/(^babel-preset-|[\\/])/)) {
 			try {
-				preset = relative.resolve('babel-preset-'+presetInput);
+				preset = relative.resolve('babel-preset-'+presetInput, __dirname);
 			} catch(err) {
 				console.log(err);
 			}
