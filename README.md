@@ -8,6 +8,9 @@
 
 Create a modified babel preset based on an an existing preset.
 
+> Works best with `npm 3`.
+
+
 ```sh
 npm i -S modify-babel-preset
 ```
