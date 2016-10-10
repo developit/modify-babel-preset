@@ -110,7 +110,6 @@ module.exports = function(presetInput, modifications) {
 			var mod = Array.isArray(plugins[i]) ? plugins[i][0] : plugins[i];
 			var name = typeof mod==='string' && getModuleName(mod) || mod._original_name;
 			name = alias[name] || name;
-			console.log(alias)
 			if (isSameName(name, key)) {
 				return i;
 			}
