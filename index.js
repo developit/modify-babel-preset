@@ -97,6 +97,7 @@ module.exports = function(presetInput, modifications) {
 		cwd: cwd
 	});
 
+	var alias = serialized.alias;
 	var plugins = getFlattenedPlugins(serialized);
 
 	function isSameName(a, b) {
@@ -108,6 +109,8 @@ module.exports = function(presetInput, modifications) {
 		for (var i=plugins.length; i--; ) {
 			var mod = Array.isArray(plugins[i]) ? plugins[i][0] : plugins[i];
 			var name = typeof mod==='string' && getModuleName(mod) || mod._original_name;
+			name = alias[name] || name;
+			console.log(alias)
 			if (isSameName(name, key)) {
 				return i;
 			}
