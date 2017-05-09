@@ -1,6 +1,8 @@
 
 # modify-babel-preset
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/developit/modify-babel-preset.svg)](https://greenkeeper.io/)
+
 [![npm](https://img.shields.io/npm/v/modify-babel-preset.svg)](http://npm.im/modify-babel-preset)
 [![npm](https://img.shields.io/npm/dm/modify-babel-preset.svg)](http://npm.im/modify-babel-preset)
 [![travis](https://travis-ci.org/developit/modify-babel-preset.svg?branch=master)](https://travis-ci.org/developit/modify-babel-preset)
